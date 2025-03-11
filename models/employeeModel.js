@@ -6,10 +6,16 @@ const getAllEmployees = (callback) => {
   db.query(query, callback);
 };
 
+const getEmployeeByEmail = (email, callback) => {
+  const query = "SELECT * FROM employees WHERE email = ? AND isDeleted = FALSE";
+  db.query(query, [email], callback);
+};
+
 // Add a new employee
+
 const addEmployee = (employee, callback) => {
   const query =
-    "INSERT INTO employees (id, name, email, job_title, salary, isDeleted) VALUES (?, ?, ?, ?, ?, FALSE)";
+    "INSERT INTO employees (id, name, email, job_title, salary, isDeleted, joinedDate) VALUES (?, ?, ?, ?, ?, FALSE, ?)";
   db.query(
     query,
     [
@@ -18,6 +24,7 @@ const addEmployee = (employee, callback) => {
       employee.email,
       employee.job_title,
       employee.salary,
+      employee.joinedDate || null, // Use the provided date or default to NULL
     ],
     callback
   );
@@ -36,9 +43,52 @@ const generateEmployeeId = (callback) => {
   callback(null, uniqueId);
 };
 
+// Update employee details (only if not soft-deleted)
+
+const updateEmployee = (id, employee, callback) => {
+  let query = "UPDATE employees SET ";
+  const params = [];
+
+  if (employee.name) {
+    query += "name = ?, ";
+    params.push(employee.name);
+  }
+  if (employee.email) {
+    query += "email = ?, ";
+    params.push(employee.email);
+  }
+  if (employee.job_title) {
+    query += "job_title = ?, ";
+    params.push(employee.job_title);
+  }
+  if (employee.salary != null) {
+    query += "salary = ?, ";
+    params.push(employee.salary);
+  }
+  if (employee.joinedDate) {
+    query += "joinedDate = ?, ";
+    params.push(employee.joinedDate);
+  }
+
+  // Remove the trailing comma and space, and add the WHERE clause
+  query = query.slice(0, -2) + " WHERE id = ? AND isDeleted = FALSE";
+  params.push(id);
+
+  db.query(query, params, callback);
+};
+
+// Soft delete employee (set isDeleted to TRUE)
+const deleteEmployee = (id, callback) => {
+  const query = "UPDATE employees SET isDeleted = TRUE WHERE id = ?";
+  db.query(query, [id], callback);
+};
+
 module.exports = {
   getAllEmployees,
   addEmployee,
   getEmployeeById,
+  updateEmployee,
+  deleteEmployee,
+  getEmployeeByEmail,
   generateEmployeeId,
 };

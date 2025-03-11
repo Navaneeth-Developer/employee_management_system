@@ -28,17 +28,23 @@ db.connect((err) => {
       console.log(`Using database "${process.env.DB_NAME}".`);
 
       // Create the employees table if it doesn't exist
+      // Create the employees table if it doesn't exist
       const createTableQuery = `
-        CREATE TABLE IF NOT EXISTS employees (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          name VARCHAR(255) NOT NULL,
-          email VARCHAR(255) UNIQUE NOT NULL,
-          job_title VARCHAR(255) NOT NULL,
-          salary DECIMAL(10, 2) NOT NULL
-        )
-      `;
+      CREATE TABLE IF NOT EXISTS employees (
+        id VARCHAR(20) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        job_title VARCHAR(255) NOT NULL,
+        salary DECIMAL(10, 2) NOT NULL,
+        isDeleted BOOLEAN DEFAULT FALSE,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        joinedDate DATE DEFAULT NULL
+      )
+    `;
       db.query(createTableQuery, (err) => {
-        if (err) throw err;
+        if (err) {
+          throw err;
+        }
         console.log('Table "employees" is ready.');
       });
     });

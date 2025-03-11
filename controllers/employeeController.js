@@ -7,34 +7,59 @@ const getAllEmployees = (req, res) => {
       console.error(err);
       res.status(500).send("Error fetching employees.");
     } else {
-      res.status(200).json(results); // Return only employees with isDeleted = FALSE
+      res.status(200).json(results);
     }
   });
 };
 
 // Add a new employee
+
 const addEmployee = (req, res) => {
   const employee = req.body;
 
-  // Generate a unique ID for the new employee
-  employeeModel.generateEmployeeId((err, employeeId) => {
+  // Check if email already exists (including soft-deleted records)
+  employeeModel.getEmployeeByEmail(employee.email, (err, results) => {
     if (err) {
       console.error(err);
-      res.status(500).send("Error generating employee ID.");
-    } else {
+      return res.status(500).send("Error checking for duplicate email.");
+    }
+
+    if (results.length > 0) {
+      const existingEmployee = results[0];
+
+      // If the email exists but is soft-deleted, prevent adding
+      if (existingEmployee.isDeleted) {
+        return res.status(400).json({
+          message:
+            "This email belongs to a deleted employee. Reactivate instead.",
+        });
+      }
+
+      // Email already exists
+      return res.status(400).json({
+        message: "Email already exists. Please use a different email.",
+      });
+    }
+
+    // Generate a unique ID for the new employee
+    employeeModel.generateEmployeeId((err, employeeId) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send("Error generating employee ID.");
+      }
+
       employee.id = employeeId; // Assign the unique ID to the employee object
 
       employeeModel.addEmployee(employee, (err, results) => {
         if (err) {
           console.error(err);
-          res.status(500).send("Error adding employee.");
-        } else {
-          res
-            .status(201)
-            .json({ message: "Employee added successfully.", employeeId });
+          return res.status(500).send("Error adding employee.");
         }
+        return res
+          .status(201)
+          .json({ message: "Employee added successfully.", employeeId });
       });
-    }
+    });
   });
 };
 
@@ -44,12 +69,58 @@ const getEmployeeById = (req, res) => {
   employeeModel.getEmployeeById(id, (err, results) => {
     if (err) {
       console.error(err);
-      res.status(500).send("Error fetching employee.");
-    } else if (!results || results.length === 0) {
-      res.status(404).send("Employee not found or has been deleted.");
-    } else {
-      res.status(200).json(results[0]);
+      return res.status(500).send("Error fetching employee.");
     }
+    if (!results || results.length === 0) {
+      return res.status(404).send("Employee not found or has been deleted.");
+    }
+    return res.status(200).json(results[0]);
+  });
+};
+
+// Update employee
+const updateEmployee = (req, res) => {
+  const { id } = req.params;
+  const employee = req.body;
+
+  // Check if at least one field is provided
+  if (
+    !employee.name &&
+    !employee.email &&
+    !employee.job_title &&
+    employee.salary == null &&
+    !employee.joinedDate
+  ) {
+    return res.status(400).send("At least one field is required to update.");
+  }
+
+  employeeModel.updateEmployee(id, employee, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Error updating employee.");
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).send("Employee not found or has been deleted.");
+    }
+    return res.status(200).send("Employee updated successfully.");
+  });
+};
+
+// Soft delete employee
+const deleteEmployee = (req, res) => {
+  const { id } = req.params;
+  employeeModel.deleteEmployee(id, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Error deleting employee.");
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).send("Employee not found or already deleted.");
+    }
+    return res.status(200).json({
+      message: "Employee deleted successfully (soft delete).",
+      employeeId: id,
+    });
   });
 };
 
@@ -57,4 +128,6 @@ module.exports = {
   getAllEmployees,
   addEmployee,
   getEmployeeById,
+  updateEmployee,
+  deleteEmployee,
 };
