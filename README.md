@@ -48,7 +48,7 @@ Steps
 Clone the repository:
 
 bash
-git clone https://github.com/your-username/employee-management-system.git
+git clone https://github.com/Navaneeth-Developer/employee_management_system.git
 Navigate to the project directory:
 
 bash
