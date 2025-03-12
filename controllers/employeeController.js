@@ -96,7 +96,6 @@ const updateEmployee = (req, res) => {
 
   employeeModel.updateEmployee(id, employee, (err, results) => {
     if (err) {
-      console.error(err);
       return res.status(500).send("Error updating employee.");
     }
     if (results.affectedRows === 0) {

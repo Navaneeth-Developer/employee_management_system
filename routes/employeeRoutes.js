@@ -14,13 +14,6 @@ const validateCreateEmployee = [
     .isFloat({ gt: 0 })
     .notEmpty()
     .withMessage("Salary must be a positive number."),
-  body("joinedDate")
-    .optional() // Allow optional joinedDate for create
-    .isISO8601()
-    .toDate()
-    .withMessage(
-      "Joined date must be a valid date in ISO 8601 format (YYYY-MM-DD)."
-    ),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -47,13 +40,6 @@ const validateUpdateEmployee = [
     .optional()
     .isFloat({ gt: 0 })
     .withMessage("Salary must be a positive number."),
-  body("joinedDate")
-    .optional()
-    .isISO8601()
-    .toDate()
-    .withMessage(
-      "Joined date must be a valid date in ISO 8601 format (YYYY-MM-DD)."
-    ),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
