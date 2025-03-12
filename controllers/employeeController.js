@@ -27,18 +27,13 @@ const addEmployee = (req, res) => {
     if (results.length > 0) {
       const existingEmployee = results[0];
 
-      // If the email exists but is soft-deleted, prevent adding
-      if (existingEmployee.isDeleted) {
+      // If email exists and isDeleted is FALSE, prevent adding
+      if (!existingEmployee.isDeleted) {
         return res.status(400).json({
           message:
-            "This email belongs to a deleted employee. Reactivate instead.",
+            "Email already exists and is associated with an active employee.",
         });
       }
-
-      // Email already exists
-      return res.status(400).json({
-        message: "Email already exists. Please use a different email.",
-      });
     }
 
     // Generate a unique ID for the new employee
@@ -80,6 +75,8 @@ const getEmployeeById = (req, res) => {
 
 // Update employee
 const updateEmployee = (req, res) => {
+  console.log("req==>>", req.body);
+
   const { id } = req.params;
   const employee = req.body;
 
@@ -88,14 +85,14 @@ const updateEmployee = (req, res) => {
     !employee.name &&
     !employee.email &&
     !employee.job_title &&
-    employee.salary == null &&
-    !employee.joinedDate
+    employee.salary == null
   ) {
     return res.status(400).send("At least one field is required to update.");
   }
 
   employeeModel.updateEmployee(id, employee, (err, results) => {
     if (err) {
+      console.error(err);
       return res.status(500).send("Error updating employee.");
     }
     if (results.affectedRows === 0) {

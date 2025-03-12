@@ -38,9 +38,11 @@ db.connect((err) => {
         salary DECIMAL(10, 2) NOT NULL,
         isDeleted BOOLEAN DEFAULT FALSE,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        lastModifiedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         joinedDate DATE DEFAULT NULL
       )
     `;
+
       db.query(createTableQuery, (err) => {
         if (err) {
           throw err;

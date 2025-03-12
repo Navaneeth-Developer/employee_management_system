@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const morgan = require("morgan");
 const employeeRoutes = require("./routes/employeeRoutes");
+const checkAndCreateFields = require("./utils/checkAndCreateFields");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,7 +13,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(morgan("dev"));
-
+// Ensure all required fields exist
+checkAndCreateFields();
 // Routes
 app.use("/api", employeeRoutes);
 
